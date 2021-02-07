@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -95,78 +94,5 @@ public class CommentsScraper {
 	@Override
 	public String toString() {
 		return Arrays.toString(comments.toArray());
-	}
-	
-	public static class Comment {
-		public final String user, message, timestamp;
-		public final List<Comment> replies;
-		
-		private Comment(String user, String message, String timestamp) {
-			this.user = user;
-			this.message = message;
-			this.timestamp = timestamp;
-			this.replies = new ArrayList<>();
-		}
-		
-		public Comment addReply(Comment reply) {
-			replies.add(reply);
-			return this;
-		}
-		
-		private String jsonify(final int depth) {
-			final String tab = tabs(depth);
-			return  "\n"+
-					tab + "{\n" +
-					tab + "\t\"user\": \"" + user + "\",\n" +
-					tab + "\t\"message\": \"" + message + "\",\n" +
-					tab + "\t\"timestamp\": \"" + timestamp + "\",\n" +
-					tab + "\t\"replies\": " + Arrays.deepToString(replies.stream()
-						.map(comment -> comment.jsonify(depth+1))
-						.collect(Collectors.toList())
-						.toArray()) + "\n" +
-					tab + "}";
-		}
-		
-		@Override
-		public String toString() {
-			return jsonify(0);
-		}
-		
-		// Static helper
-		
-		private static String tabs(int i) {
-			StringBuilder sb = new StringBuilder();
-			while (i-->0) sb.append("\t");
-			return sb.toString();
-		}
-		
-		public static class Builder {
-			public String user, message, timestamp;
-		
-			public Builder setUser(String user) {
-				this.user = user;
-				return this;
-			}
-			
-			public Builder setMessage(String message) {
-				this.message = message;
-				return this;
-			}
-			
-			public Builder setTimestamp(String timestamp) {
-				this.timestamp = timestamp;
-				return this;
-			}
-			
-			public Comment build() {
-				if (user == null)
-					throw new IllegalArgumentException("User cannot be null");
-				if (message == null)
-					throw new IllegalArgumentException("Message cannot be null");
-				if (timestamp == null)
-					throw new IllegalArgumentException("Timestamp cannot be null");
-				return new Comment(user, message, timestamp);
-			}
-		}
 	}
 }

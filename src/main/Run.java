@@ -10,7 +10,4 @@ public class Run {
 		CommentsScraper scraper = new CommentsScraper(url);
 		scraper.serialize("comments.txt");
 	}
-	
-	// .count-reply > .view_all_reply
-
 }
