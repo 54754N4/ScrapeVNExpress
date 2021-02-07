@@ -26,13 +26,18 @@ public class Comment {
 		return  "\n"+
 				tab + "{\n" +
 				tab + "\t\"user\": \"" + user + "\",\n" +
-				tab + "\t\"message\": \"" + message + "\",\n" +
+				tab + "\t\"message\": \"" + escape(message) + "\",\n" +
 				tab + "\t\"timestamp\": \"" + timestamp + "\",\n" +
 				tab + "\t\"replies\": " + Arrays.deepToString(replies.stream()
 					.map(comment -> comment.jsonify(depth+1))
 					.collect(Collectors.toList())
 					.toArray()) + "\n" +
 				tab + "}";
+	}
+	
+	private String escape(String input) {
+		return input.replace("\"", "\\\"")	// escape double quotes
+				.replace("\n", "\\n");		// escape newlines
 	}
 	
 	@Override
