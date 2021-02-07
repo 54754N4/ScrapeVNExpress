@@ -35,17 +35,17 @@ public class Comment {
 				tab + "}";
 	}
 	
-	private String escape(String input) {
-		return input.replace("\"", "\\\"")	// escape double quotes
-				.replace("\n", "\\n");		// escape newlines
-	}
-	
 	@Override
 	public String toString() {
 		return jsonify(0);
 	}
 	
-	// Static helper
+	// Static helpers
+	
+	private static String escape(String input) {
+		return input.replace("\"", "\\\"")	// escape double quotes
+				.replace("\n", "\\n");		// escape newlines
+	}
 	
 	private static String tabs(int i) {
 		StringBuilder sb = new StringBuilder();
