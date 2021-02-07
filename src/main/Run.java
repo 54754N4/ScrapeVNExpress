@@ -6,7 +6,7 @@ import scrape.CommentsScraper;
 
 public class Run {
 	public static void main(String[] args) throws IOException {
-		String url = "https://vnexpress.net/thuong-nghi-si-my-hung-hau-qua-vi-ung-ho-trump-4222651.html";
+		String url = "https://vnexpress.net/buoi-tong-duyet-le-nham-chuc-cua-biden-4223129.html";
 		CommentsScraper scraper = new CommentsScraper(url);
 		scraper.serialize("comments.json");
 	}

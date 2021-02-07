@@ -30,8 +30,10 @@ public class CommentsScraper {
 				.visit(url)	// load website
 				.waitFor(By.cssSelector("div.box_comment_vne.width_common"));
 			// Click on 'Xem them' first to load everything
-			commentsBox.findElement(By.className("view_more_coment"))
-				.click();
+			try {
+				commentsBox.findElement(By.className("view_more_coment"))
+					.click();
+			} catch (Exception e) { /* if there's no button we don't care */ }
 			// Get all comments
 			commentsBox.findElements(By.cssSelector("div.comment_item.width_common"))
 				.forEach(domComment -> comments.add(convertToComment(domComment)));
