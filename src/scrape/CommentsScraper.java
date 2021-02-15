@@ -1,9 +1,8 @@
 package scrape;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,26 +19,43 @@ public class CommentsScraper {
 			TIME_SELECTOR = "span.time-com",
 			LOAD_SELECTOR = "p.count-reply > a.view_all_reply",
 			SHRUNKEN_COMMENT = "div.content-comment > p.content_less > a.icon_show_full_comment";
-	private List<Comment> comments;
-	private int count = 0;
+	private int count = 0;	// comments count
+	private Browser browser;
+	private List<Page> pages;
 	
-	public CommentsScraper(String url) {
-		comments = new ArrayList<>();
+	public CommentsScraper(String...urls) {
+		pages = new ArrayList<>();
 		try (Browser browser = new Browser(true)) {
-			WebElement commentsBox = browser
+			this.browser = browser;
+			for (String url : urls)
+				pages.add(loadComments(url));
+		} finally {	// prevent browser memory leak
+			if (browser != null)
+				browser.close();
+		}
+	}
+	
+	private Page loadComments(String url) {
+		System.out.printf("Scraping website: %s%n", url);
+		WebElement commentsBox = browser
 				.visit(url)	// load website
 				.waitFor(By.cssSelector("div.box_comment_vne.width_common"));
-			// Click on 'Xem them' first to load everything
-			try {
-				commentsBox.findElement(By.className("view_more_coment"))
-					.click();
-			} catch (Exception e) { /* if there's no button we don't care */ }
-			// Get all comments
-			commentsBox.findElements(By.cssSelector("div.comment_item.width_common"))
-				.forEach(domComment -> comments.add(convertToComment(domComment)));
-		}
-		System.out.printf("Global comments : %d%n",comments.size());
+		// Click on 'Xem them' first to load everything
+		try {
+			commentsBox.findElement(By.className("view_more_coment"))
+				.click();
+		} catch (Exception e) { /* if there's no button we don't care */ }
+		// Get all comments
+		List<Comment> comments = new ArrayList<>();
+		commentsBox.findElements(By.cssSelector("div.comment_item.width_common"))
+			.forEach(domComment -> comments.add(convertToComment(domComment)));
+		System.out.printf("Global comments : %d%n", comments.size());
 		System.out.printf("Total comments : %d%n", count);
+		count = 0;	// reset total page comments count
+		return new Page.Builder()
+			.setUrl(url)
+			.setComments(comments)
+			.build();
 	}
 	
 	private Comment convertToComment(WebElement domComment) {
@@ -83,18 +99,20 @@ public class CommentsScraper {
 			.forEach(parent::addReply);
 	}
 	
-	public void serialize(String filename) throws IOException {
-		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(filename), StandardCharsets.UTF_16)) {
-			writer.append("[");
-			for (int i=0; i<comments.size(); i++)
-				writer.append(comments.get(i).toString()+(i == comments.size()-1 ? "" : ","));
-			writer.append("]");
-			writer.flush();
-		}
+	public Path serialize(String filename) throws IOException {
+		return Files.writeString(Paths.get(filename), Json.of(pages));
+	}
+	
+	public static List<Page> deserialize(String filename) throws IOException {
+		String json = Files.newBufferedReader(Paths.get(filename))
+			.lines()
+			.reduce((s1,s2) -> s1 + System.lineSeparator() + s2)
+			.get();
+		return Json.toList(json, Page.class);
 	}
 	
 	@Override
 	public String toString() {
-		return Arrays.toString(comments.toArray());
+		return Arrays.toString(pages.toArray());
 	}
 }
